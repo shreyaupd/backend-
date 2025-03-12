@@ -1,14 +1,15 @@
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";
 import express from "express";
-dotenv.config({path:"./env"})
+dotenv.config({path:"./env"}) //Loads the environment variables from the .env file into process.env.
 const app=express();
 const PORT = process.env.PORT
 
-connectDB()
-.then(()=>{
+connectDB() //Tries to connect to MongoDB using Mongoose.
+.then(()=>{  //Inside this block, we start the Express server only if the connectDB() is true.
     app.listen(process.env.PORT,
-    ()=>console.log(`Server is running on http://localhost:${process.env.PORT}`)
+    ()=>console.log(`Server is running on http://localhost:${process.env.PORT}`) // eg: Server is running on http://localhost:5000
+
 )})
 .catch((err)=>{
     console.log("There was an error connecting MongoDB",err)

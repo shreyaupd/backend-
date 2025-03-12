@@ -1,4 +1,6 @@
 import mongoose, { Schema } from "mongoose";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 const userSchema = new Schema({   //new keyword is used to create a new empty object of a class so that the previous object is not modified. 
   username: {
     type: String,
@@ -8,7 +10,7 @@ const userSchema = new Schema({   //new keyword is used to create a new empty ob
     index: true,//searching will be faster if we use index on the field.
   },
 
-  email: {
+  email: { 
     type: String,
     required: true,
     unique: true,
@@ -55,8 +57,48 @@ userSchema.pre("save", async function (next) { //arrow function le this keyword 
   next(); //Calls the next middleware function in the stack.
 })
 
-userSchema.models.isPasswordCorrect = async function(password){
-     return await bcrypt.compare(password,this.password) // this.password refers to the encrypted password stored in the database from above function.
-   // async await is required because encryption and decryption requires time.
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password) // this.password refers to the encrypted password stored in the database from above function.
+  // async await is required because encryption and decryption requires time.
 }
-export const User= mongoose.model("User", userSchema); //User is a Mongoose model created from the userSchema.
+//methods are used to add custom functions to the schema.the function created in this case is called generateAccessToken. 
+userSchema.methods.generateAccessToken = function () {
+
+  //jwt.sign(payload,secretKey, options); payload is the data that we want to encode in the token. secretKey is the key that is used to encode the token. options is an object that contains the expiry time of the token.
+  //  jwt.sign() creates a secure token with user info.
+
+  // 1️⃣ You log in → The server gives you a token.
+  // 2️⃣ Every time you make a request, you send the token instead of logging in again.
+  // 3️⃣ The server checks the token to see if you are authorized.
+  // 4️⃣ If the token is valid, you get access. If invalid or expired, you get logged out.
+  return jwt.sign({
+    _id: this._id,
+    username: this.username,
+    email: this.email,
+    fullname: this.fullname,
+  },
+    process.env.ACCESS_TOKEN_SECRET,
+
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+    }
+
+  )
+
+}
+userSchema.methods.generateRefereshToken = function () { 
+  return jwt.sign({
+    _id: this._id,
+  },
+    process.env.REFRESH_TOKEN_SECRET,
+
+    {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+    }
+
+  )
+}
+export const User = mongoose.model("User", userSchema); //User is a Mongoose model created from the userSchema.
+
+
+// user is a model and userschema is the properties that users should have(username,password,email,etc)  and instance is an individual user(model) having properties(schema) 

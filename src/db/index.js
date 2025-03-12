@@ -13,3 +13,11 @@ const connectDB =async()=>{
     }
 }
 export default connectDB
+
+
+//Summary of the code: 
+// ✅ Imports Mongoose & DB name.
+// ✅ Defines an async function to connect to MongoDB.
+// ✅ Uses try...catch to handle success & errors.
+// ✅ Uses mongoose.connect() to establish a connection.
+// ✅ Exports the function so it can be used elsewhere.

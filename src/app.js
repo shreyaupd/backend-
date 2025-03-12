@@ -17,6 +17,6 @@ app.use(express.urlencoded({     // parse URL-encoded bodies (e.g., application/
 }))
 
 app.use(express.static("public"))
-app.use(cookieParser())
+app.use(cookieParser()) //Allows Express to read cookies from incoming requests. Without this, your server can't access cookies sent by the client.
 
 export default app
