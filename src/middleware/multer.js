@@ -1,15 +1,19 @@
 import multer from "multer";
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, '/tmp/my-uploads')
+      cb(null, '.public/temp')//This specifies where the uploaded files will be stored. In this case, they will be stored in the temp folder inside the public folder.
     },
     filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      cb(null, file.fieldname + '-' + uniqueSuffix)
+      cb(null, file.originalname)
     }
   })
   
-  const upload = multer({ storage: storage })
+  export const upload = multer({ storage, })
 
 
   //This snippet configures Multer to handle file uploads by specifying where to store the uploaded files and how to name them.
+// Multer is imported to handle file uploads.
+// The storage configuration is defined:
+// Files will be saved in .public/temp.
+// Files will keep their original names (e.g., photo.jpg).
+// The upload middleware is created, which will handle the actual process of uploading files when you use it in your routes.
