@@ -23,10 +23,10 @@ app.use(cookieParser()) //Allows Express to read cookies from incoming requests.
 import userRouter from "./routes/user.routes.js"
 //routes declaration
 // app.use("/user",userRouter) //when user types /user in the url, they will be directes to the userRouter file which contains the user routes
-//eg https://localhost:8000/user/register 
+//eg http://localhost:8000/user/register 
 //user will be directed to the registerUser function in the user.controller.js file 
 //register (it is in user.routes.js) will be directed to the registerUser function in the user.controller.js file
 //in industrial practise use:
-app.use("/api/v1/user",userRouter) 
-//eg https://localhost:8000/api/v1/user/register
+app.use("/api/v1/user", userRouter);
+//eg http://localhost:8000/api/v1/user/register
 export default app
