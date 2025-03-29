@@ -2,7 +2,7 @@
 
 
 import asyncHandeller from "../utils/asyncHandeller.js";
-
+import {ApiError} from "../utils/ApiError.js";
 const registerUser = asyncHandeller(async (req, res) => {
 
 //1.get user details from frontend
@@ -16,10 +16,27 @@ const registerUser = asyncHandeller(async (req, res) => {
 //9.return res (response) to frontend
 
 //1. get user details from frontend
-const { username, email, fullname, password } = req.body;
+const { fullname, email, username, password } = req.body;
 console.log("email", email);
-res.status(200).json({ message: "User registered successfully" });
-})
+if(
+    [fullname,email,username,password].some((fiels))=>{
+        field?.trim()===""
+    }
+    {
+        throw new ApiError(400,"All fields are required")
+    }
+
+    const exsistingUser = UserActivation.findOne({
+        $or: [
+            {email},
+            {username}
+        ]
+    })
+    if (exsistingUser){
+        throw new ApiError(409,"User already exists")
+    } 
+}
+)
 // note:
 // Uses asyncHandeller to catch errors automatically.
 // Handles an HTTP request.

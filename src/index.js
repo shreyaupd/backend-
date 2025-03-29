@@ -7,13 +7,14 @@ const PORT = process.env.PORT
 
 connectDB() //Tries to connect to MongoDB using Mongoose.
 .then(()=>{  //Inside this block, we start the Express server only if the connectDB() is true.
-    app.listen(process.env.PORT,
+    app.listen(process.env.PORT||9000,
     ()=>console.log(`Server is running on http://localhost:${process.env.PORT}`) // eg: Server is running on http://localhost:5000
 
 )})
 .catch((err)=>{
     console.log("There was an error connecting MongoDB",err)
 })
+export default app;
 
 
 

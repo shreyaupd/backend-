@@ -27,6 +27,6 @@ import userRouter from "./routes/user.routes.js"
 //user will be directed to the registerUser function in the user.controller.js file 
 //register (it is in user.routes.js) will be directed to the registerUser function in the user.controller.js file
 //in industrial practise use:
-app.use("/api/v1/user", userRouter);
+app.use("/api/v1/users", userRouter);
 //eg http://localhost:8000/api/v1/user/register
 export default app
