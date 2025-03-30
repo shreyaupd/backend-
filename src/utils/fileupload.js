@@ -23,7 +23,7 @@ import fs from 'fs'; //file system helps to read write remove async sync files. 
                 return null; //Return null to indicate failure
         }
     }
-    export default uploadonCloudinary
+    export {uploadonCloudinary}
 
 
 //  Takes a file as input.
