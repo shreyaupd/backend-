@@ -41,7 +41,12 @@ const registerUser = asyncHandeller(async (req, res) => {
     // avatar[0]: Looks at the first file in the avatar array (as there could be multiple files uploaded).
     //path: Returns the location where the file is stored on the server.
 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    } 
 
     if(!avatarLocalPath)
     {

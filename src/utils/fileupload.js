@@ -15,7 +15,8 @@ import fs from 'fs'; //file system helps to read write remove async sync files. 
                 resource_type:"auto",//to detect the file type
               })
               //file has been upladed successfully
-              console.log("File is uploaded successfully",response.url);//This prints a message to the console with the file's URL.response.url is the URL of the uploaded file.
+              //console.log("File is uploaded successfully",response.url);//This prints a message to the console with the file's URL.response.url is the URL of the uploaded file.
+               fs.unlinkSync(file);
               return response //Return uploaded file details
         }
         catch(error){
