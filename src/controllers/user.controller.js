@@ -2,6 +2,7 @@ import asyncHandeller from "../utils/asyncHandeller.js";
 import { ApiError } from "../utils/ApiError.js";
 import {uploadonCloudinary} from "../utils/fileupload.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import {User} from "../models/user.model.js";
 const registerUser = asyncHandeller(async (req, res) => {
 
     //1.get user details from frontend
@@ -25,10 +26,10 @@ const registerUser = asyncHandeller(async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
-    const exsistingUser = UserActivation.findOne({
+    const exsistingUser = await User.findOne({
         $or: [
-            { email },
-            { username }
+            { username } ,{ email }
+           
         ]
     })
     if (exsistingUser) {
@@ -55,10 +56,10 @@ const registerUser = asyncHandeller(async (req, res) => {
     }
 
     const user = await User.create({
-       username: username.tolowerCase(),
+       username: username.toLowerCase(),
        email,
        fullname,
-       avatar,
+       avatar:avatar.url,
        coverImage:coverImage?.url || "",
        password
     })

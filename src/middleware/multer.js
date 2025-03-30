@@ -1,14 +1,18 @@
 import multer from "multer";
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, '.public/temp')//This specifies where the uploaded files will be stored. In this case, they will be stored in the temp folder inside the public folder.
+      cb(null, "./public/temp")
     },
     filename: function (req, file, cb) {
+      
       cb(null, file.originalname)
     }
   })
   
-  export const upload = multer({ storage, })
+export const upload = multer({ 
+    storage, 
+})
 
 
   //This snippet configures Multer to handle file uploads by specifying where to store the uploaded files and how to name them.
