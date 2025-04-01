@@ -137,23 +137,42 @@ const loginUser = asyncHandeller(async (req, res) => {
 
     //7. send to cookies
     const loggedUser = await User.findById(user._id).select("-password -refreshToken")
-    const options={
-        httpOnly:true,
-        secure:true
+    const options = {
+        httpOnly: true,
+        secure: true
     }
-    return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(new ApiResponse (200,{
-        user:loggedUser,
+    return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(new ApiResponse(200, {
+        user: loggedUser,
         accessToken,
         refreshToken,
-    } ,"User logged in successfully"))
+    }, "User logged in successfully"))
 
-    const logoutUser = asyncHandeller(async(req,res)=>{
-        
+    
+})
+const logoutUser = asyncHandeller(async (req, res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    )
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+    return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options).json(
+        new ApiResponse(200, {}, "User logged out successfully")
+
+
+    )
 
 })
-
-})
-export { registerUser, loginUser };
+    export { registerUser, loginUser,logoutUser };
 
 
 
