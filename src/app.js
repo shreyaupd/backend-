@@ -7,9 +7,9 @@ app.use(cors({
     credentials:true // allows the application to include credentials (such as cookies, authorization headers, etc.) in the CORS response.
 }))
 //configurations
-// app.use(express.json({
-//     limit:"16kb"
-// }))
+app.use(express.json({
+    limit:"16kb"
+}))
 
 app.use(express.urlencoded({     // parse URL-encoded bodies (e.g., application/x-www-form-urlencoded)  
     extended:true, // allows for nested objects and arrays in the URL-encoded data

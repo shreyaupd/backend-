@@ -103,6 +103,7 @@ userSchema.methods.generateRefereshToken = function () {
 
   )
 }
+
 export const User = mongoose.model("User", userSchema); //User is a Mongoose model created from the userSchema.
 
 
