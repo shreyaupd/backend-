@@ -57,7 +57,8 @@ const userSchema = new Schema({   //new keyword is used to create a new empty ob
 userSchema.pre("save", async function (next) { //arrow function le this keyword lai use garna mildaina so we use normal function.
   if (!this.isModified("password")) //isModified is a method that is used to check if the password field has been modified or not. if 'if' is not used then the password will be hashed every time the document is saved.
     return next(); // if the password field has not been modified then the function will return and the next middleware function in the stack will be called.
-  this.password = bcrypt.hash(this.password, 10) //this refers to the document ((instance) instance refers to a specific user document created from the User model that is being saved to the database) that is being saved.
+    const hashedPassword = await bcrypt.hash(this.password, 10);//this refers to the document ((instance) instance refers to a specific user document created from the User model that is being saved to the database) that is being saved.
+    this.password = hashedPassword 
   //this.password: Refers to the password field of the document being saved.
   next(); //Calls the next middleware function in the stack.
 })
