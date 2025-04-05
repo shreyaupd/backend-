@@ -4,17 +4,20 @@ import { uploadonCloudinary } from "../utils/fileupload.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 //6. if password is correct? create access token and refresh token
-const generateAccessandRefreshToken = async (userID) => {
+const generateAccessAndRefereshTokens = async(userId) =>{
     try {
-        const user = await User.findById(userID) //You need the user instance to call instance methods like generateAccessToken and generateRefreshToken.
+        const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
-        user.refreshToken = refreshToken // assigns the newly generated refreshToken to the refreshToken field of the user document.
-        await user.save({ validateBeforeSave: false }) // saves the user document to the database without validating the fields. This is useful when you want to update a field without triggering validation checks on other fields.
-        // validateBeforeSave: false is used to skip validation for the refreshToken field when saving the user document.
-        return { accessToken, refreshToken }
+
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return {accessToken, refreshToken}
+
+
     } catch (error) {
-        throw new ApiError(500, "Token generation error")
+        throw new ApiError(500, "Something went wrong while generating referesh and access token")
     }
 }
 const registerUser = asyncHandeller(async (req, res) => {
@@ -34,9 +37,7 @@ const registerUser = asyncHandeller(async (req, res) => {
     //  console.log("email", email);
     //2. validate if empty or not
     if (
-        [fullname, email, username, password].some((field) => {
-            return field?.trim() === "";
-        })
+        [fullname, email, username, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
     }

@@ -44,7 +44,7 @@ const userSchema = new Schema({   //new keyword is used to create a new empty ob
     required: true,
   },
 
-  refereshToken: {
+  refreshToken: {
     type: String,
   },
 },
@@ -67,11 +67,20 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password) // this.password refers to the encrypted password stored in the database from above function.
   // async await is required because encryption and decryption requires time.
 }
+/*************  ✨ Windsurf Command 🌟  *************/
 //methods are used to add custom functions to the schema.the function created in this case is called generateAccessToken. 
+/**
+ * Generates an access token for the user.
+ * @returns {string} The access token.
+ */
 userSchema.methods.generateAccessToken = function () {
 
   //jwt.sign(payload,secretKey, options); payload is the data that we want to encode in the token. secretKey is the key that is used to encode the token. options is an object that contains the expiry time of the token.
   //  jwt.sign() creates a secure token with user info.
+  // 1. You log in → The server gives you a token.
+  // 2. Every time you make a request, you send the token instead of logging in again.
+  // 3. The server checks the token to see if you are authorized.
+  // 4. If the token is valid, you get access. If invalid or expired, you get logged out.
 
   // 1️⃣ You log in → The server gives you a token.
   // 2️⃣ Every time you make a request, you send the token instead of logging in again.
@@ -92,7 +101,7 @@ userSchema.methods.generateAccessToken = function () {
   )
 
 }
-userSchema.methods.generateRefereshToken = function () { 
+userSchema.methods.generateRefreshToken = function () { 
   return jwt.sign({
     _id: this._id,
   },
