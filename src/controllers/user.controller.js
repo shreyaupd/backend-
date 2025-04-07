@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { uploadonCloudinary } from "../utils/fileupload.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
+import jwt from "jsonwebtoken"
 //6. if password is correct? create access token and refresh token
 const generateAccessAndRefereshTokens = async(userId) =>{
     try {
@@ -173,7 +174,45 @@ const logoutUser = asyncHandeller(async (req, res) => {
     )
 
 })
-    export { registerUser, loginUser,logoutUser };
+const refreshAccessToken = asyncHandeller(async(req,res)=>{
+   const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken  
 
+   if(!incommingRefreshToken){
+    throw new ApiError(401,"unauthorized request")
+   }
+    //to check if the refresh token is valid or not, we can use the jwt.verify method from the jsonwebtoken library. This method takes the refresh token and the secret key used to sign it as arguments and returns the decoded token if it's valid.
+   try {
+    const decodedtoken=jwt.verify( 
+     incommingRefreshToken,
+     process.env.REFRESH_TOKEN_SECRET
+    )
+     //why find user? because we want to check if the user is valid or not
+     //if the user is not found, we can throw an error indicating that the user is not authorized.
+    const user = await User.findById(decodedtoken?._id)
+    if(!user){
+     throw new ApiError(401,"Invalid refresh token")
+ }
+    if(incommingRefreshToken!==user?.refreshToken){
+     throw new ApiError(401,"Invalid refresh token")
+    }
+ 
+    const options ={
+     httpOnly:true,
+     secure:true
+    }
+ 
+     const {accessToken,newrefreshToken} = await generateAccessAndRefereshTokens(user._id)
+    
+     return res.status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",newrefreshToken,options)
+    .json(new ApiResponse(200,{accessToken,newrefreshToken},"Access token refreshed successfully")
+ )
+   } catch (error) {
+    throw new ApiError(401,error?.message || "Unauthorized access! Invalid token.")
+ 
+   }
+})
 
+    export { registerUser, loginUser,logoutUser,refreshAccessToken };
 
