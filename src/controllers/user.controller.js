@@ -98,6 +98,7 @@ const registerUser = asyncHandeller(async (req, res) => {
         new ApiResponse(201, createdUser, "User created successfully")
     )
 })
+
 const loginUser = asyncHandeller(async (req, res) => {
     //1.bring data from req body
     //2.username or emil
@@ -151,6 +152,7 @@ const loginUser = asyncHandeller(async (req, res) => {
 
 
 })
+
 const logoutUser = asyncHandeller(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
@@ -174,6 +176,7 @@ const logoutUser = asyncHandeller(async (req, res) => {
     )
 
 })
+
 const refreshAccessToken = asyncHandeller(async (req, res) => {
     const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
@@ -213,6 +216,20 @@ const refreshAccessToken = asyncHandeller(async (req, res) => {
 
     }
 })
+
+const changePassword = asyncHandeller(async (req, res) => {
+     const { oldPassword, newPassword } = req.body
+     const user = await User.findById(req.user?.id)  
+     const isPasswordCorrect =await user.isPasswordCorrect(oldPassword)
+        if (!isPasswordCorrect) {
+            throw new ApiError(401, "Invalid password")
+        }
+        user.password = newPassword
+        await user.save({ validateBeforeSave: false })
+        return res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"))
+    
+})
+
 
 export { registerUser, loginUser, logoutUser, refreshAccessToken };
 
