@@ -5,16 +5,16 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken"
 //6. if password is correct? create access token and refresh token
-const generateAccessAndRefereshTokens = async(userId) =>{
+const generateAccessAndRefereshTokens = async (userId) => {
     try {
-        const user = await User.findById(userId)
-        const accessToken = user.generateAccessToken()
+        const user = await User.findById(userId) 
+        const accessToken = user.generateAccessToken() 
         const refreshToken = user.generateRefreshToken()
 
-        user.refreshToken = refreshToken
-        await user.save({ validateBeforeSave: false })
+        user.refreshToken = refreshToken // users refreshToken is updated with the new refresh token
+        await user.save({ validateBeforeSave: false }) //
 
-        return {accessToken, refreshToken}
+        return { accessToken, refreshToken }
 
 
     } catch (error) {
@@ -23,22 +23,22 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 }
 const registerUser = asyncHandeller(async (req, res) => {
 
-    //1.get user details from frontend
+    //1.get user details from frontend in RAM 
     //2.validate if empty or not
     //3.check if user already exists via email or username
     //4.check avatar and coverImage
     //5.upload them in cloudinary
-    //6.create user object and enter in database
+    //6.create user object and enter in database ie. saving
     //7.remove password and refresh token from response
     //8.check for user validation
     //9.return res (response) to frontend
 
     //1. get user details from frontend. This is essentially the logic flow for user registration, ensuring that the system doesn’t allow empty fields or duplicate users to be registered.
-    const { fullname, email, username, password } = req.body;
+    const { fullname, email, username, password } = req.body; 
     //  console.log("email", email);
     //2. validate if empty or not
     if (
-        [fullname, email, username, password].some((field) => field?.trim() === "")
+        [fullname, email, username, password].some((field) => field?.trim() === "") //
     ) {
         throw new ApiError(400, "All fields are required")
     }
@@ -61,7 +61,7 @@ const registerUser = asyncHandeller(async (req, res) => {
     // const coverImageLocalPath = req.files?.coverImage[0]?.path
 
     let coverImageLocalPath;
-    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {   
         // If coverImage is an array and has at least one file, get the path of the first file.
         coverImageLocalPath = req.files.coverImage[0].path
     }
@@ -149,7 +149,7 @@ const loginUser = asyncHandeller(async (req, res) => {
         refreshToken,
     }, "User logged in successfully"))
 
-    
+
 })
 const logoutUser = asyncHandeller(async (req, res) => {
     await User.findByIdAndUpdate(
@@ -174,45 +174,45 @@ const logoutUser = asyncHandeller(async (req, res) => {
     )
 
 })
-const refreshAccessToken = asyncHandeller(async(req,res)=>{
-   const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken  
+const refreshAccessToken = asyncHandeller(async (req, res) => {
+    const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
-   if(!incommingRefreshToken){
-    throw new ApiError(401,"unauthorized request")
-   }
+    if (!incommingRefreshToken) {
+        throw new ApiError(401, "unauthorized request")
+    }
     //to check if the refresh token is valid or not, we can use the jwt.verify method from the jsonwebtoken library. This method takes the refresh token and the secret key used to sign it as arguments and returns the decoded token if it's valid.
-   try {
-    const decodedtoken=jwt.verify( 
-     incommingRefreshToken,
-     process.env.REFRESH_TOKEN_SECRET
-    )
-     //why find user? because we want to check if the user is valid or not
-     //if the user is not found, we can throw an error indicating that the user is not authorized.
-    const user = await User.findById(decodedtoken?._id)
-    if(!user){
-     throw new ApiError(401,"Invalid refresh token")
- }
-    if(incommingRefreshToken!==user?.refreshToken){
-     throw new ApiError(401,"Invalid refresh token")
+    try {
+        const decodedtoken = jwt.verify(
+            incommingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        )
+        //why find user? because we want to check if the user is valid or not
+        //if the user is not found, we can throw an error indicating that the user is not authorized.
+        const user = await User.findById(decodedtoken?._id)
+        if (!user) {
+            throw new ApiError(401, "Invalid refresh token")
+        }
+        if (incommingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "Invalid refresh token")
+        }
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        const { accessToken, newrefreshToken } = await generateAccessAndRefereshTokens(user._id)
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newrefreshToken, options)
+            .json(new ApiResponse(200, { accessToken, newrefreshToken }, "Access token refreshed successfully")
+            )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Unauthorized access! Invalid token.")
+
     }
- 
-    const options ={
-     httpOnly:true,
-     secure:true
-    }
- 
-     const {accessToken,newrefreshToken} = await generateAccessAndRefereshTokens(user._id)
-    
-     return res.status(200)
-    .cookie("accessToken",accessToken,options)
-    .cookie("refreshToken",newrefreshToken,options)
-    .json(new ApiResponse(200,{accessToken,newrefreshToken},"Access token refreshed successfully")
- )
-   } catch (error) {
-    throw new ApiError(401,error?.message || "Unauthorized access! Invalid token.")
- 
-   }
 })
 
-    export { registerUser, loginUser,logoutUser,refreshAccessToken };
+export { registerUser, loginUser, logoutUser, refreshAccessToken };
 
