@@ -5,7 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken"
 //6. if password is correct? create access token and refresh token
-const generateAccessAndRefereshTokens = async (userId) => {
+const generateAccessAndRefreshTokens = async (userId) => {
     try {
         const user = await User.findById(userId) 
         const accessToken = user.generateAccessToken() 
@@ -136,7 +136,7 @@ const loginUser = asyncHandeller(async (req, res) => {
         throw new ApiError(401, "Invalid password!!")
     }
     //6. if password is correct? create access token and refresh token
-    const { accessToken, refreshToken } = await generateAccessandRefreshToken(user._id)
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
 
     //7. send to cookies
     const loggedUser = await User.findById(user._id).select("-password -refreshToken")
@@ -219,7 +219,7 @@ const refreshAccessToken = asyncHandeller(async (req, res) => {
 
 const changePassword = asyncHandeller(async (req, res) => {
      const { oldPassword, newPassword } = req.body
-     const user = await User.findById(req.user?.id)  
+     const user = await User.findById(req.user?._id)  
      const isPasswordCorrect =await user.isPasswordCorrect(oldPassword)
         if (!isPasswordCorrect) {
             throw new ApiError(401, "Invalid password")
@@ -230,6 +230,84 @@ const changePassword = asyncHandeller(async (req, res) => {
     
 })
 
+const getuser = asyncHandeller(async (req, res) => {
+   return res.status(200).json(new ApiResponse(200, req.user, "User fetched successfully"))
+})
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const updateAccountDetails = asyncHandeller(async (req, res) => {
+      const {fullname,email}=req.body
+      if(!fullname || !email){
+        throw new ApiError(400,"Fullname and email are required")
+      }
+       User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: { //set is used to update the fields in the database
+                fullname,
+                email //email:email 
+            }
+        },
+        {new:true}
+
+    ).select("-password")
+    return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "User details updated successfully"))
+
+})
+
+const updateAvatar =asyncHandeller(async (req, res) => {
+         avatarLocalPath=req.files?.path
+         if(!avatarLocalPath){
+            throw new ApiError(400,"Avatar is required")
+         }
+         const avatar = await uploadonCloudinary(avatarLocalPath)
+
+         if(!avatar.url){
+            throw new ApiError(400,"Avatar is required")
+         }
+
+          await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $set:{
+                    avatar:avatar.url
+                }
+
+            },
+            {
+                new:true
+            }
+
+          ).select("-password")
+})
+
+
+const updateCover =asyncHandeller(async (req, res) => {
+    coverImageLocalPath=req.files?.path
+    if(!coverImageLocalPath){
+       throw new ApiError(400,"Cover Image is required")
+    }
+    const coverImage = await uploadonCloudinary(coverImageLocalPathh)
+
+    if(!coverImage.url){
+       throw new ApiError(400,"Avatar is required")
+    }
+
+     await User.findByIdAndUpdate(
+       req.user._id,
+       {
+           $set:{
+            coverImage:coverImage.url
+           }
+
+       },
+       {
+           new:true
+       }
+
+     ).select("-password")
+})
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken,changePassword,getuser,updateAccountDetails,updateAvatar,updateCover };
 
