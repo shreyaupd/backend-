@@ -256,8 +256,8 @@ const updateAccountDetails = asyncHandeller(async (req, res) => {
 
 })
 
-const updateAvatar =asyncHandeller(async (req, res) => {
-         avatarLocalPath=req.files?.path
+const updateAvatar = asyncHandeller(async (req, res) => {
+         avatarLocalPath=req.file?.path
          if(!avatarLocalPath){
             throw new ApiError(400,"Avatar is required")
          }
@@ -267,7 +267,7 @@ const updateAvatar =asyncHandeller(async (req, res) => {
             throw new ApiError(400,"Avatar is required")
          }
 
-          await User.findByIdAndUpdate(
+         const user = await User.findByIdAndUpdate(
             req.user._id,
             {
                 $set:{
@@ -280,11 +280,13 @@ const updateAvatar =asyncHandeller(async (req, res) => {
             }
 
           ).select("-password")
+
+          return res.status(200).json(new ApiResponse(200,user,"User avatar updated successfully"))
 })
 
 
-const updateCover =asyncHandeller(async (req, res) => {
-    coverImageLocalPath=req.files?.path
+const updateCover = asyncHandeller(async (req, res) => {
+    coverImageLocalPath=req.file?.path
     if(!coverImageLocalPath){
        throw new ApiError(400,"Cover Image is required")
     }
@@ -294,7 +296,7 @@ const updateCover =asyncHandeller(async (req, res) => {
        throw new ApiError(400,"Avatar is required")
     }
 
-     await User.findByIdAndUpdate(
+     const user = await User.findByIdAndUpdate(
        req.user._id,
        {
            $set:{
@@ -307,7 +309,17 @@ const updateCover =asyncHandeller(async (req, res) => {
        }
 
      ).select("-password")
+
+     return res.status(200).json(new ApiResponse(200,user,"User cover image updated successfully"))
 })
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken,changePassword,getuser,updateAccountDetails,updateAvatar,updateCover };
+export { registerUser, 
+         loginUser, 
+         logoutUser, 
+         refreshAccessToken, 
+         changePassword, 
+         getuser, 
+         updateAccountDetails, 
+         updateAvatar, 
+         updateCover };
 
