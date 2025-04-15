@@ -321,5 +321,6 @@ export { registerUser,
          getuser, 
          updateAccountDetails, 
          updateAvatar, 
-         updateCover };
+         updateCover 
+        };
 
