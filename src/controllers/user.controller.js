@@ -155,14 +155,14 @@ const loginUser = asyncHandeller(async (req, res) => {
 
 const logoutUser = asyncHandeller(async (req, res) => {
     await User.findByIdAndUpdate(
-        req.user._id,
+        req.user._id, 
         {
             $set: {
                 refreshToken: undefined
             }
         },
         {
-            new: true
+            new: true 
         }
     )
     const options = {
@@ -313,6 +313,43 @@ const updateCover = asyncHandeller(async (req, res) => {
      return res.status(200).json(new ApiResponse(200,user,"User cover image updated successfully"))
 })
 
+
+const getUserChannelProfile = asyncHandeller(async (req, res) => {
+    const {username}=req.params //params are the values that are passed in the URL of the request. For example, if the URL is /user/johndoe, then the username parameter would be johndoe.
+    if(!username?.trim()){
+        throw new ApiError(400,"Username is required")
+    }
+    const channel = await User.aggregate([
+        {
+            $match: { username: username?.toLowerCase() }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
+            }
+        },
+         
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribed to"
+            }
+        },
+    {
+        $addFields: {
+            subscribersCount: { $size: "$subscribers" },
+            subscribedToCount: { $size: "$subscribed to" }
+        }
+    }
+
+    ]);
+   
+})
 export { registerUser, 
          loginUser, 
          logoutUser, 
@@ -321,6 +358,7 @@ export { registerUser,
          getuser, 
          updateAccountDetails, 
          updateAvatar, 
-         updateCover 
+         updateCover,
+         getUserChannelProfile 
         };
 

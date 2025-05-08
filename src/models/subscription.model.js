@@ -7,8 +7,8 @@ const subscriptionSchema = new Schema({
     },
     channel :{//owner of the channel}
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: "User", 
     }
 },{timestamp:true
 })
-export const Subsciption = mongoose.model("Subscription","subscriptionSchema")
+export const Subscription = mongoose.model("Subscription", subscriptionSchema)
