@@ -7,8 +7,8 @@ import jwt from "jsonwebtoken"
 //6. if password is correct? create access token and refresh token
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
-        const user = await User.findById(userId) 
-        const accessToken = user.generateAccessToken() 
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
         user.refreshToken = refreshToken // users refreshToken is updated with the new refresh token
@@ -34,7 +34,7 @@ const registerUser = asyncHandeller(async (req, res) => {
     //9.return res (response) to frontend
 
     //1. get user details from frontend. This is essentially the logic flow for user registration, ensuring that the system doesn’t allow empty fields or duplicate users to be registered.
-    const { fullname, email, username, password } = req.body; 
+    const { fullname, email, username, password } = req.body;
     //  console.log("email", email);
     //2. validate if empty or not
     if (
@@ -61,7 +61,7 @@ const registerUser = asyncHandeller(async (req, res) => {
     // const coverImageLocalPath = req.files?.coverImage[0]?.path
 
     let coverImageLocalPath;
-    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {   
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
         // If coverImage is an array and has at least one file, get the path of the first file.
         coverImageLocalPath = req.files.coverImage[0].path
     }
@@ -131,7 +131,7 @@ const loginUser = asyncHandeller(async (req, res) => {
         throw new ApiError(400, "Password is required!!")
     }
     //5. no password? throw error
-    const correctpassword = await user.isPasswordCorrect(password)//calling the method from user model to check password
+    const correctpassword = await user.isPasswordCorrect(password)//calling the method from user model to check password isPasswordCorrect is a method defined in the user model that checks if the password provided by the user matches the hashed password stored in the database.
     if (!correctpassword) {
         throw new ApiError(401, "Invalid password!!")
     }
@@ -155,14 +155,14 @@ const loginUser = asyncHandeller(async (req, res) => {
 
 const logoutUser = asyncHandeller(async (req, res) => {
     await User.findByIdAndUpdate(
-        req.user._id, 
+        req.user._id,
         {
             $set: {
                 refreshToken: undefined
             }
         },
         {
-            new: true 
+            new: true
         }
     )
     const options = {
@@ -218,28 +218,28 @@ const refreshAccessToken = asyncHandeller(async (req, res) => {
 })
 
 const changePassword = asyncHandeller(async (req, res) => {
-     const { oldPassword, newPassword } = req.body
-     const user = await User.findById(req.user?._id)  
-     const isPasswordCorrect =await user.isPasswordCorrect(oldPassword)
-        if (!isPasswordCorrect) {
-            throw new ApiError(401, "Invalid password")
-        }
-        user.password = newPassword
-        await user.save({ validateBeforeSave: false })
-        return res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"))
-    
+    const { oldPassword, newPassword } = req.body
+    const user = await User.findById(req.user?._id)
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "Invalid password")
+    }
+    user.password = newPassword
+    await user.save({ validateBeforeSave: false })
+    return res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"))
+
 })
 
 const getuser = asyncHandeller(async (req, res) => {
-   return res.status(200).json(new ApiResponse(200, req.user, "User fetched successfully"))
+    return res.status(200).json(new ApiResponse(200, req.user, "User fetched successfully"))
 })
 
 const updateAccountDetails = asyncHandeller(async (req, res) => {
-      const {fullname,email}=req.body
-      if(!fullname || !email){
-        throw new ApiError(400,"Fullname and email are required")
-      }
-     const user =  User.findByIdAndUpdate(
+    const { fullname, email } = req.body
+    if (!fullname || !email) {
+        throw new ApiError(400, "Fullname and email are required")
+    }
+    const user = User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: { //set is used to update the fields in the database
@@ -247,118 +247,148 @@ const updateAccountDetails = asyncHandeller(async (req, res) => {
                 email //email:email 
             }
         },
-        {new:true}
+        { new: true }
 
     ).select("-password")
     return res
-    .status(200)
-    .json(new ApiResponse(200, req.user, "User details updated successfully"))
+        .status(200)
+        .json(new ApiResponse(200, req.user, "User details updated successfully"))
 
 })
 
 const updateAvatar = asyncHandeller(async (req, res) => {
-         avatarLocalPath=req.file?.path
-         if(!avatarLocalPath){
-            throw new ApiError(400,"Avatar is required")
-         }
-         const avatar = await uploadonCloudinary(avatarLocalPath)
+    avatarLocalPath = req.file?.path
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar is required")
+    }
+    const avatar = await uploadonCloudinary(avatarLocalPath)
 
-         if(!avatar.url){
-            throw new ApiError(400,"Avatar is required")
-         }
+    if (!avatar.url) {
+        throw new ApiError(400, "Avatar is required")
+    }
 
-         const user = await User.findByIdAndUpdate(
-            req.user._id,
-            {
-                $set:{
-                    avatar:avatar.url
-                }
-
-            },
-            {
-                new:true
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                avatar: avatar.url
             }
 
-          ).select("-password")
+        },
+        {
+            new: true
+        }
 
-          return res.status(200).json(new ApiResponse(200,user,"User avatar updated successfully"))
+    ).select("-password")
+
+    return res.status(200).json(new ApiResponse(200, user, "User avatar updated successfully"))
 })
 
 
 const updateCover = asyncHandeller(async (req, res) => {
-    coverImageLocalPath=req.file?.path
-    if(!coverImageLocalPath){
-       throw new ApiError(400,"Cover Image is required")
+    coverImageLocalPath = req.file?.path
+    if (!coverImageLocalPath) {
+        throw new ApiError(400, "Cover Image is required")
     }
     const coverImage = await uploadonCloudinary(coverImageLocalPathh)
 
-    if(!coverImage.url){
-       throw new ApiError(400,"Avatar is required")
+    if (!coverImage.url) {
+        throw new ApiError(400, "Avatar is required")
     }
 
-     const user = await User.findByIdAndUpdate(
-       req.user._id,
-       {
-           $set:{
-            coverImage:coverImage.url
-           }
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                coverImage: coverImage.url
+            }
 
-       },
-       {
-           new:true
-       }
+        },
+        {
+            new: true
+        }
 
-     ).select("-password")
+    ).select("-password")
 
-     return res.status(200).json(new ApiResponse(200,user,"User cover image updated successfully"))
+    return res.status(200).json(new ApiResponse(200, user, "User cover image updated successfully"))
 })
 
-
+//subscriber → follower and channel → the person being followed
 const getUserChannelProfile = asyncHandeller(async (req, res) => {
-    const {username}=req.params //params are the values that are passed in the URL of the request. For example, if the URL is /user/johndoe, then the username parameter would be johndoe.
-    if(!username?.trim()){
-        throw new ApiError(400,"Username is required")
+    const { username } = req.params //params are the values that are passed in the URL of the request. For example, if the URL is /user/johndoe, then the username parameter would be johndoe.
+    if (!username?.trim()) {
+        throw new ApiError(400, "Username is required")
     }
     const channel = await User.aggregate([
         {
             $match: { username: username?.toLowerCase() }
         },
         {
-            $lookup: {
+            $lookup: { // “Who are the people that have subscribed to this user’s channel?” hunxa.
                 from: "subscriptions",
                 localField: "_id",
-                foreignField: "channel",
+                foreignField: "channel", 
                 as: "subscribers"
             }
         },
-         
+
         {
-            $lookup: {
+            $lookup: { //“Who has this user followed?”
                 from: "subscriptions",
                 localField: "_id",
                 foreignField: "subscriber",
-                as: "subscribed to"
+                as: "subscribedTo"
             }
         },
-    {
-        $addFields: {
-            subscribersCount: { $size: "$subscribers" },
-            subscribedToCount: { $size: "$subscribed to" }
+        {
+            $addFields: {
+                subscribersCount: { $size: "$subscribers" },
+                subscribedToCount: { $size: "$subscribedTo" },
+                isSubscribed: {
+                    $cond: {
+                        if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                        then: true,
+                        else: false
+                    }
+                }
+
+
+
+            }
+        },
+        {
+            $project: { //project is used to include or exclude fields from the result set. In this case, we are including the fullname, username, avatar, coverImage, subscribersCount, subscribedToCount, and isSubscribed fields in the result set.
+                fullname: 1,
+                username: 1,
+                subscribersCount: 1,
+                subscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1,
+                createdAt: 1,
+            }
         }
-    }
+     
 
     ]);
-   
+
+    if (!channel?.length) {
+        throw new ApiError(404, "Channel not found")
+    }
+
+    return res.status(200).json(new ApiResponse(200, channel[0], "User channel profile fetched successfully"))
 })
-export { registerUser, 
-         loginUser, 
-         logoutUser, 
-         refreshAccessToken, 
-         changePassword, 
-         getuser, 
-         updateAccountDetails, 
-         updateAvatar, 
-         updateCover,
-         getUserChannelProfile 
-        };
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    changePassword,
+    getuser,
+    updateAccountDetails,
+    updateAvatar,
+    updateCover,
+    getUserChannelProfile
+};
 
