@@ -379,6 +379,7 @@ const getUserChannelProfile = asyncHandeller(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, channel[0], "User channel profile fetched successfully"))
 })
+
 export {
     registerUser,
     loginUser,
