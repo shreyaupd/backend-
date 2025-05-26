@@ -381,7 +381,47 @@ const getUserChannelProfile = asyncHandeller(async (req, res) => {
 })
 
 const getWatchHistory = asyncHandeller(async (req, res) => {
-     
+     const user = await User.aggregate([
+        {
+            $match: { _id : new mongoose.Types.ObjectId(req.user._id) } //searching the user with this id after the string received in req.user._id is converted to an ObjectId.
+        },
+        {
+            $lookup: { // "Get me the videos this user has watched — not just videos IDs, but the full video details in array called watchHistory."
+                from: "videos", 
+                localField: "watchHistory", //what you need
+                foreignField: "_id", 
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from:"users",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                        fullname:1,
+                                        username:1,
+                                        avatar:1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields:{
+                            owner:{
+                                $first:"$owner" //this is used to get the first element of the array.
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+     ])
+
+     return res.status(200).json(new ApiResponse(200, user[0].WatchHistory, "User watch history fetched successfully"))
 })
 export {
     registerUser,
