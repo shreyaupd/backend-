@@ -10,7 +10,6 @@ const generateAccessAndRefreshTokens = async (userId) => {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
-
         user.refreshToken = refreshToken // users refreshToken is updated with the new refresh token
         await user.save({ validateBeforeSave: false }) //
 
@@ -137,7 +136,8 @@ const loginUser = asyncHandeller(async (req, res) => {
     }
     //6. if password is correct? create access token and refresh token
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
-
+      console.log("Access Token:", accessToken);       // <--- PUT THIS HERE
+       console.log("Refresh Token:", refreshToken);
     //7. send to cookies
     const loggedUser = await User.findById(user._id).select("-password -refreshToken")
     const options = {
@@ -158,7 +158,7 @@ const logoutUser = asyncHandeller(async (req, res) => {
         req.user._id,
         {
             $set: {
-                refreshToken: undefined
+                refreshToken: 1
             }
         },
         {
@@ -178,44 +178,51 @@ const logoutUser = asyncHandeller(async (req, res) => {
 })
 
 const refreshAccessToken = asyncHandeller(async (req, res) => {
-    const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-
-    if (!incommingRefreshToken) {
-        throw new ApiError(401, "unauthorized request")
+  try {
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    
+    if (!refreshToken) {
+      return res.status(200).json({ 
+        success: true,
+        shouldLogin: true,
+        message: "Please log in again" 
+      });
     }
-    //to check if the refresh token is valid or not, we can use the jwt.verify method from the jsonwebtoken library. This method takes the refresh token and the secret key used to sign it as arguments and returns the decoded token if it's valid.
-    try {
-        const decodedtoken = jwt.verify(
-            incommingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET
-        )
-        //why find user? because we want to check if the user is valid or not
-        //if the user is not found, we can throw an error indicating that the user is not authorized.
-        const user = await User.findById(decodedtoken?._id)
-        if (!user) {
-            throw new ApiError(401, "Invalid refresh token")
-        }
-        if (incommingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "Invalid refresh token")
-        }
 
-        const options = {
-            httpOnly: true,
-            secure: true
-        }
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const user = await User.findById(decoded._id);
 
-        const { accessToken, newrefreshToken } = await generateAccessAndRefereshTokens(user._id)
-
-        return res.status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newrefreshToken, options)
-            .json(new ApiResponse(200, { accessToken, newrefreshToken }, "Access token refreshed successfully")
-            )
-    } catch (error) {
-        throw new ApiError(401, error?.message || "Unauthorized access! Invalid token.")
-
+    if (!user || refreshToken !== user.refreshToken) {
+      return res.status(200).json({ 
+        success: true,
+        shouldLogin: true,
+        message: "Session expired - please log in" 
+      });
     }
-})
+
+    const { accessToken, refreshToken: newRefreshToken } = 
+      await generateAccessAndRefreshTokens(user._id);
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+
+    return res.status(200).json({
+      success: true,
+      accessToken,
+      message: "Token refreshed successfully"
+    });
+
+  } catch (error) {
+    return res.status(200).json({ 
+      success: true,
+      shouldLogin: true,
+      message: "Session expired - please log in" 
+    });
+  }
+});
 
 const changePassword = asyncHandeller(async (req, res) => {
     const { oldPassword, newPassword } = req.body
@@ -239,7 +246,7 @@ const updateAccountDetails = asyncHandeller(async (req, res) => {
     if (!fullname || !email) {
         throw new ApiError(400, "Fullname and email are required")
     }
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: { //set is used to update the fields in the database
@@ -257,7 +264,7 @@ const updateAccountDetails = asyncHandeller(async (req, res) => {
 })
 
 const updateAvatar = asyncHandeller(async (req, res) => {
-    avatarLocalPath = req.file?.path
+   const avatarLocalPath = req.file?.path
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar is required")
     }
@@ -286,11 +293,11 @@ const updateAvatar = asyncHandeller(async (req, res) => {
 
 
 const updateCover = asyncHandeller(async (req, res) => {
-    coverImageLocalPath = req.file?.path
+   const coverImageLocalPath = req.file?.path
     if (!coverImageLocalPath) {
         throw new ApiError(400, "Cover Image is required")
     }
-    const coverImage = await uploadonCloudinary(coverImageLocalPathh)
+    const coverImage = await uploadonCloudinary(coverImageLocalPath)
 
     if (!coverImage.url) {
         throw new ApiError(400, "Avatar is required")
@@ -421,7 +428,7 @@ const getWatchHistory = asyncHandeller(async (req, res) => {
         }
      ])
 
-     return res.status(200).json(new ApiResponse(200, user[0].WatchHistory, "User watch history fetched successfully"))
+     return res.status(200).json(new ApiResponse(200, user[0].watchHistory, "User watch history fetched successfully"))
 })
 export {
     registerUser,

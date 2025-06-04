@@ -36,7 +36,7 @@ const userSchema = new Schema({   //new keyword is used to create a new empty ob
 
   watchHistory: {
     type: Schema.Types.ObjectId, //this will be the id of the movie.
-    ref: "video",
+    ref: "Video",
   },
 
   password: {
